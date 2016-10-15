@@ -1,6 +1,6 @@
-[![Build Status][travis]](https://travis-ci.org/japaric/r0)
-
-[travis]: https://travis-ci.org/japaric/r0.svg?branch=master
+[![Build status](https://travis-ci.org/japaric/r0.svg?branch=master)](https://travis-ci.org/japaric/r0)
+[![crates.io](https://img.shields.io/crates/d/r0.svg)](https://crates.io/crates/r0)
+[![crates.io](https://img.shields.io/crates/v/r0.svg)](https://crates.io/crates/r0)
 
 # `r0`
 
