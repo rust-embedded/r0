@@ -6,7 +6,7 @@
 
 > Initialization code ("crt0") written in Rust
 
-## [Documentation](https://github.com/japaric/r0)
+## [Documentation](https://docs.rs/r0)
 
 ## License
 
