@@ -49,7 +49,7 @@
 #![deny(warnings)]
 #![no_std]
 
-use core::{mem, ptr};
+use core::{mem, ptr, slice};
 
 /// Initializes the `.data` section
 ///
@@ -77,6 +77,17 @@ pub unsafe fn init_data<T>(sdata: *mut T, edata: *mut T, sidata: *const T)
     ptr::copy_nonoverlapping(sidata, sdata, n)
 }
 
+pub unsafe fn run_init_array(init_array_start: &extern "C" fn(),
+                             init_array_end: &extern "C" fn()) {
+    let n = (init_array_end as *const _ as usize -
+             init_array_start as *const _ as usize) /
+            mem::size_of::<extern "C" fn()>();
+
+    for f in slice::from_raw_parts(init_array_start, n) {
+        f();
+    }
+}
+
 /// Zeroes the `.bss` section
 ///
 /// # Arguments
@@ -98,4 +109,31 @@ pub unsafe fn zero_bss<T>(sbss: *mut T, ebss: *mut T)
     let n = (ebss as usize - sbss as usize) / mem::size_of::<T>();
 
     ptr::write_bytes(sbss, 0, n);
+}
+
+#[macro_export]
+    macro_rules! pre_init_array {
+    ($name:ident, $body:expr) => {
+        #[allow(dead_code)]
+        unsafe extern "C" fn $name() {
+            #[link_section = ".pre_init_array"]
+            // #[used]
+            static PRE_INIT_ARRAY_ELEMENT: unsafe extern "C" fn() = $name;
+
+            $body
+        }
+    }
+}
+#[macro_export]
+macro_rules! init_array {
+    ($name:ident, $body:expr) => {
+        #[allow(dead_code)]
+        unsafe extern "C" fn $name() {
+            #[link_section = ".init_array"]
+            // #[used]
+            static INIT_ARRAY_ELEMENT: unsafe extern "C" fn() = $name;
+
+            $body
+        }
+    }
 }
