@@ -5,7 +5,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [v0.2.0] - 2016-01-22
+## [v0.2.1] - 2017-04-08
+
+### Added
+
+- `.init_array` / `.pre_init_array` support
+
+## [v0.2.0] - 2017-01-22
 
 ### Changed
 
@@ -21,5 +27,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 - `init_data` and `zero_bss` functions.
 
-[Unreleased]: https://github.com/japaric/xargo/compare/v0.2.0...HEAD
-[v0.2.0]: https://github.com/japaric/xargo/compare/v0.1.0...v0.2.0
+[Unreleased]: https://github.com/japaric/r0/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/japaric/r0/compare/v0.2.0...v0.2.1
+[v0.2.0]: https://github.com/japaric/r0/compare/v0.1.0...v0.2.0
