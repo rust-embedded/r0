@@ -117,10 +117,15 @@ pub unsafe fn zero_bss<T>(sbss: *mut T, ebss: *mut T)
         #[allow(dead_code)]
         unsafe extern "C" fn $name() {
             #[link_section = ".pre_init_array"]
-            // #[used]
+            #[used]
             static PRE_INIT_ARRAY_ELEMENT: unsafe extern "C" fn() = $name;
 
-            $body
+            #[inline(always)]
+            fn inner() {
+                $body
+            }
+
+            inner()
         }
     }
 }
@@ -130,10 +135,15 @@ macro_rules! init_array {
         #[allow(dead_code)]
         unsafe extern "C" fn $name() {
             #[link_section = ".init_array"]
-            // #[used]
+            #[used]
             static INIT_ARRAY_ELEMENT: unsafe extern "C" fn() = $name;
 
-            $body
+            #[inline(always)]
+            fn inner() {
+                $body
+            }
+
+            inner()
         }
     }
 }
