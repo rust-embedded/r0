@@ -3,7 +3,7 @@
 //! This is for bare metal systems where there is no ELF loader or OS to take
 //! care of initializing RAM for the program.
 //!
-//! # Example
+//! # Initializing RAM
 //!
 //! On the linker script side, we must assign names (symbols) to the boundaries
 //! of the `.bss` and `.data` sections.
@@ -45,6 +45,59 @@
 //!     init_data(&mut _sdata, &mut _edata, &_sidata);
 //! }
 //! ```
+//!
+//! # `.init_array` & `.pre_init_array`
+//!
+//! This crate also provides an API to add "life before main" functionality to
+//! bare metal systems.
+//!
+//! On the linker script side, instruct the linker to keep the `.init_array`
+//! sections from input object files. Store the start and end address of the
+//! merged `.init_array` section.
+//!
+//! ``` text
+//! .text :
+//! {
+//!   /* .. */
+//!   _init_array_start = ALIGN(4);
+//!   KEEP(*(.init_array));
+//!   _init_array_end = ALIGN(4);
+//!   /* .. */
+//! }
+//! ```
+//!
+//! On the startup code, invoke the `run_init_array` function *before* you call
+//! the user `main`.
+//!
+//! ```
+//! unsafe fn start() {
+//!     extern "C" {
+//!         static _init_array_start: extern "C" fn();
+//!         static _init_array_end: extern "C" fn();
+//!     }
+//!
+//!     ::r0::run_init_array(&_init_array_start, &_init_array_end);
+//!
+//!     extern "C" {
+//!         fn main(argc: isize, argv: *const *const u8) -> isize;
+//!     }
+//!
+//!     main();
+//! }
+//! ```
+//!
+//! Then the user application can use this crate `init_array!` macro to run code
+//! before `main`.
+//!
+//! ```
+//! init_array!(before_main, {
+//!     println!("Hello");
+//! });
+//!
+//! fn main() {
+//!     println!("World");
+//! }
+//! ```
 
 #![deny(warnings)]
 #![no_std]
@@ -70,15 +123,18 @@ use core::{mem, ptr, slice};
 ///   region
 /// - `sdata`, `edata` and `sidata` must be `T` aligned.
 pub unsafe fn init_data<T>(sdata: *mut T, edata: *mut T, sidata: *const T)
-    where T: Copy
+where
+    T: Copy,
 {
     let n = (edata as usize - sdata as usize) / mem::size_of::<T>();
 
     ptr::copy_nonoverlapping(sidata, sdata, n)
 }
 
-pub unsafe fn run_init_array(init_array_start: &extern "C" fn(),
-                             init_array_end: &extern "C" fn()) {
+pub unsafe fn run_init_array(
+    init_array_start: &extern "C" fn(),
+    init_array_end: &extern "C" fn(),
+) {
     let n = (init_array_end as *const _ as usize -
              init_array_start as *const _ as usize) /
             mem::size_of::<extern "C" fn()>();
@@ -104,7 +160,8 @@ pub unsafe fn run_init_array(init_array_start: &extern "C" fn(),
 /// - `ebss >= sbss`
 /// - `sbss` and `ebss` must be `T` aligned.
 pub unsafe fn zero_bss<T>(sbss: *mut T, ebss: *mut T)
-    where T: Copy
+where
+    T: Copy,
 {
     let n = (ebss as usize - sbss as usize) / mem::size_of::<T>();
 
@@ -112,7 +169,7 @@ pub unsafe fn zero_bss<T>(sbss: *mut T, ebss: *mut T)
 }
 
 #[macro_export]
-    macro_rules! pre_init_array {
+macro_rules! pre_init_array {
     ($name:ident, $body:expr) => {
         #[allow(dead_code)]
         unsafe extern "C" fn $name() {
@@ -129,6 +186,7 @@ pub unsafe fn zero_bss<T>(sbss: *mut T, ebss: *mut T)
         }
     }
 }
+
 #[macro_export]
 macro_rules! init_array {
     ($name:ident, $body:expr) => {
