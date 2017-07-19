@@ -122,13 +122,18 @@ use core::{mem, ptr, slice};
 /// - The `sdata -> edata` region must not overlap with the `sidata -> ...`
 ///   region
 /// - `sdata`, `edata` and `sidata` must be `T` aligned.
-pub unsafe fn init_data<T>(sdata: *mut T, edata: *mut T, sidata: *const T)
-where
+pub unsafe fn init_data<T>(
+    mut sdata: *mut T,
+    edata: *mut T,
+    mut sidata: *const T,
+) where
     T: Copy,
 {
-    let n = (edata as usize - sdata as usize) / mem::size_of::<T>();
-
-    ptr::copy_nonoverlapping(sidata, sdata, n)
+    while sdata < edata {
+        ptr::write(sdata, ptr::read(sidata));
+        sdata = sdata.offset(1);
+        sidata = sidata.offset(1);
+    }
 }
 
 pub unsafe fn run_init_array(
