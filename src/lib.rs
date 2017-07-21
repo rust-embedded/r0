@@ -169,6 +169,7 @@ where
     T: Copy,
 {
     while sbss < ebss {
+        // NOTE(volatile) to prevent this from being transformed into `memclr`
         ptr::write_volatile(sbss, mem::zeroed());
         sbss = sbss.offset(1);
     }
