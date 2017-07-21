@@ -122,13 +122,18 @@ use core::{mem, ptr, slice};
 /// - The `sdata -> edata` region must not overlap with the `sidata -> ...`
 ///   region
 /// - `sdata`, `edata` and `sidata` must be `T` aligned.
-pub unsafe fn init_data<T>(sdata: *mut T, edata: *mut T, sidata: *const T)
-where
+pub unsafe fn init_data<T>(
+    mut sdata: *mut T,
+    edata: *mut T,
+    mut sidata: *const T,
+) where
     T: Copy,
 {
-    let n = (edata as usize - sdata as usize) / mem::size_of::<T>();
-
-    ptr::copy_nonoverlapping(sidata, sdata, n)
+    while sdata < edata {
+        ptr::write(sdata, ptr::read(sidata));
+        sdata = sdata.offset(1);
+        sidata = sidata.offset(1);
+    }
 }
 
 pub unsafe fn run_init_array(
@@ -136,8 +141,8 @@ pub unsafe fn run_init_array(
     init_array_end: &extern "C" fn(),
 ) {
     let n = (init_array_end as *const _ as usize -
-             init_array_start as *const _ as usize) /
-            mem::size_of::<extern "C" fn()>();
+                 init_array_start as *const _ as usize) /
+        mem::size_of::<extern "C" fn()>();
 
     for f in slice::from_raw_parts(init_array_start, n) {
         f();
@@ -159,13 +164,14 @@ pub unsafe fn run_init_array(
 /// - `mem::size_of::<T>()` must be non-zero
 /// - `ebss >= sbss`
 /// - `sbss` and `ebss` must be `T` aligned.
-pub unsafe fn zero_bss<T>(sbss: *mut T, ebss: *mut T)
+pub unsafe fn zero_bss<T>(mut sbss: *mut T, ebss: *mut T)
 where
     T: Copy,
 {
-    let n = (ebss as usize - sbss as usize) / mem::size_of::<T>();
-
-    ptr::write_bytes(sbss, 0, n);
+    while sbss < ebss {
+        ptr::write_volatile(sbss, mem::zeroed());
+        sbss = sbss.offset(1);
+    }
 }
 
 #[macro_export]
