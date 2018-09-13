@@ -122,27 +122,27 @@ use core::{mem, ptr, slice};
 /// - The `sdata -> edata` region must not overlap with the `sidata -> ...`
 ///   region
 /// - `sdata`, `edata` and `sidata` must be `T` aligned.
-pub unsafe fn init_data<T>(
-    mut sdata: *mut T,
-    edata: *mut T,
-    mut sidata: *const T,
-) where
+pub unsafe fn init_data<T>(mut sdata: *mut T, edata: *mut T, mut sidata: *const T)
+where
     T: Copy,
 {
-    while sdata < edata {
+    if sdata >= edata {
+        return;
+    }
+
+    loop {
         ptr::write(sdata, ptr::read(sidata));
         sdata = sdata.offset(1);
+        if sdata == edata {
+            return;
+        }
         sidata = sidata.offset(1);
     }
 }
 
-pub unsafe fn run_init_array(
-    init_array_start: &extern "C" fn(),
-    init_array_end: &extern "C" fn(),
-) {
-    let n = (init_array_end as *const _ as usize -
-                 init_array_start as *const _ as usize) /
-        mem::size_of::<extern "C" fn()>();
+pub unsafe fn run_init_array(init_array_start: &extern "C" fn(), init_array_end: &extern "C" fn()) {
+    let n = (init_array_end as *const _ as usize - init_array_start as *const _ as usize)
+        / mem::size_of::<extern "C" fn()>();
 
     for f in slice::from_raw_parts(init_array_start, n) {
         f();
@@ -168,10 +168,17 @@ pub unsafe fn zero_bss<T>(mut sbss: *mut T, ebss: *mut T)
 where
     T: Copy,
 {
-    while sbss < ebss {
+    if sbss >= ebss {
+        return;
+    }
+
+    loop {
         // NOTE(volatile) to prevent this from being transformed into `memclr`
         ptr::write_volatile(sbss, mem::zeroed());
         sbss = sbss.offset(1);
+        if sbss == ebss {
+            return;
+        }
     }
 }
 
@@ -191,7 +198,7 @@ macro_rules! pre_init_array {
 
             inner()
         }
-    }
+    };
 }
 
 #[macro_export]
@@ -210,5 +217,5 @@ macro_rules! init_array {
 
             inner()
         }
-    }
+    };
 }
