@@ -5,5 +5,5 @@ documentation = "https://docs.rs/r0"
 keywords = ["initialization", "start", "crt0", "c0"]
 license = "MIT OR Apache-2.0"
 name = "r0"
-repository = "https://github.com/japaric/r0"
+repository = "https://github.com/rust-embedded/r0"
 version = "0.2.2"
