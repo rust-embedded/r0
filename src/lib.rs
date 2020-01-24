@@ -55,6 +55,36 @@ mod test;
 
 use core::{mem, ptr};
 
+mod sealed {
+    pub trait Sealed {}
+}
+
+/// Trait for machine word types.
+///
+/// This trait is implemented by unsigned integers representing common machine
+/// word sizes. It can not be implemented by the user.
+///
+/// Types implementing this trait can be used by the [`init_data`] and
+/// [`zero_bss`] functions. For that to be sound, all bit patterns need to be
+/// valid for the type, the type must implement `Copy`, and the type must not
+/// be zero-sized.
+///
+/// [`init_data`]: fn.init_data.html
+/// [`zero_bss`]: fn.zero_bss.html
+pub unsafe trait Word: sealed::Sealed + Copy {}
+
+impl sealed::Sealed for u8 {}
+impl sealed::Sealed for u16 {}
+impl sealed::Sealed for u32 {}
+impl sealed::Sealed for u64 {}
+impl sealed::Sealed for u128 {}
+
+unsafe impl Word for u8 {}
+unsafe impl Word for u16 {}
+unsafe impl Word for u32 {}
+unsafe impl Word for u64 {}
+unsafe impl Word for u128 {}
+
 /// Initializes the `.data` section.
 ///
 /// # Arguments
@@ -67,18 +97,17 @@ use core::{mem, ptr};
 ///
 /// # Safety
 ///
-/// - Must be called exactly once
-/// - `mem::size_of::<T>()` must be non-zero
-/// - `edata >= sdata`
+/// - Must be called exactly once, before the application has started.
+/// - `edata >= sdata`.
 /// - The `sdata -> edata` region must not overlap with the `sidata -> ...`
-///   region
+///   region.
 /// - `sdata`, `edata` and `sidata` must be `T` aligned.
 pub unsafe fn init_data<T>(
     mut sdata: *mut T,
     edata: *mut T,
     mut sidata: *const T,
 ) where
-    T: Copy,
+    T: Word,
 {
     while sdata < edata {
         ptr::write(sdata, ptr::read(sidata));
@@ -98,13 +127,12 @@ pub unsafe fn init_data<T>(
 ///
 /// # Safety
 ///
-/// - Must be called exactly once
-/// - `mem::size_of::<T>()` must be non-zero
-/// - `ebss >= sbss`
+/// - Must be called exactly once, before the application has started.
+/// - `ebss >= sbss`.
 /// - `sbss` and `ebss` must be `T` aligned.
 pub unsafe fn zero_bss<T>(mut sbss: *mut T, ebss: *mut T)
 where
-    T: Copy,
+    T: Word,
 {
     while sbss < ebss {
         // NOTE(volatile) to prevent this from being transformed into `memclr`
