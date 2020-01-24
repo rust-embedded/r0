@@ -5,6 +5,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- Remove the init array APIs as they are not pulling their weight.
+- Bound `zero_bss` and `init_data` by a new `Word` trait.
+
 ## [v0.2.2] - 2017-07-21
 
 ### Changed
