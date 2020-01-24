@@ -7,4 +7,5 @@ repository = "https://github.com/rust-embedded/r0"
 keywords = ["initialization", "init", "start", "crt0", "c0"]
 categories = ["embedded", "no-std"]
 license = "MIT OR Apache-2.0"
+edition = "2018"
 version = "0.2.2"
