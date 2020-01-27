@@ -1,4 +1,4 @@
-//! Initialization code ("crt0") written in Rust
+//! Initialization code ("crt0") written in Rust.
 //!
 //! This is for bare metal systems where there is no ELF loader or OS to take
 //! care of initializing RAM for the program.
@@ -6,7 +6,7 @@
 //! # Initializing RAM
 //!
 //! On the linker script side, we must assign names (symbols) to the boundaries
-//! of the `.bss` and `.data` sections.
+//! of the `.bss` and `.data` sections:
 //!
 //! ```text
 //! .bss : ALIGN(4)
@@ -26,9 +26,10 @@
 //! _sidata = LOADADDR(.data);
 //! ```
 //!
-//! On the Rust side, we must bind to those symbols using an `extern` block.
+//! On the Rust side, we must bind to those symbols using an `extern` block:
 //!
-//! ```rust,ignore
+//! ```no_run
+//! # use r0::{zero_bss, init_data};
 //! unsafe fn before_main() {
 //!     // The type, `u32`, indicates that the memory is 4-byte aligned
 //!     extern "C" {
@@ -45,59 +46,6 @@
 //!     init_data(&mut _sdata, &mut _edata, &_sidata);
 //! }
 //! ```
-//!
-//! # `.init_array` & `.pre_init_array`
-//!
-//! This crate also provides an API to add "life before main" functionality to
-//! bare metal systems.
-//!
-//! On the linker script side, instruct the linker to keep the `.init_array`
-//! sections from input object files. Store the start and end address of the
-//! merged `.init_array` section.
-//!
-//! ```text
-//! .text :
-//! {
-//!   /* .. */
-//!   _init_array_start = ALIGN(4);
-//!   KEEP(*(.init_array));
-//!   _init_array_end = ALIGN(4);
-//!   /* .. */
-//! }
-//! ```
-//!
-//! On the startup code, invoke the `run_init_array` function *before* you call
-//! the user `main`.
-//!
-//! ```rust,ignore
-//! unsafe fn start() {
-//!     extern "C" {
-//!         static _init_array_start: extern "C" fn();
-//!         static _init_array_end: extern "C" fn();
-//!     }
-//!
-//!     ::r0::run_init_array(&_init_array_start, &_init_array_end);
-//!
-//!     extern "C" {
-//!         fn main(argc: isize, argv: *const *const u8) -> isize;
-//!     }
-//!
-//!     main();
-//! }
-//! ```
-//!
-//! Then the user application can use this crate `init_array!` macro to run code
-//! before `main`.
-//!
-//! ```rust,ignore
-//! init_array!(before_main, {
-//!     println!("Hello");
-//! });
-//!
-//! fn main() {
-//!     println!("World");
-//! }
-//! ```
 
 #![deny(warnings)]
 #![no_std]
@@ -105,9 +53,39 @@
 #[cfg(test)]
 mod test;
 
-use core::{mem, ptr, slice};
+use core::{mem, ptr};
 
-/// Initializes the `.data` section
+mod sealed {
+    pub trait Sealed {}
+}
+
+/// Trait for machine word types.
+///
+/// This trait is implemented by unsigned integers representing common machine
+/// word sizes. It can not be implemented by the user.
+///
+/// Types implementing this trait can be used by the [`init_data`] and
+/// [`zero_bss`] functions. For that to be sound, all bit patterns need to be
+/// valid for the type, the type must implement `Copy`, and the type must not
+/// be zero-sized.
+///
+/// [`init_data`]: fn.init_data.html
+/// [`zero_bss`]: fn.zero_bss.html
+pub unsafe trait Word: sealed::Sealed + Copy {}
+
+impl sealed::Sealed for u8 {}
+impl sealed::Sealed for u16 {}
+impl sealed::Sealed for u32 {}
+impl sealed::Sealed for u64 {}
+impl sealed::Sealed for u128 {}
+
+unsafe impl Word for u8 {}
+unsafe impl Word for u16 {}
+unsafe impl Word for u32 {}
+unsafe impl Word for u64 {}
+unsafe impl Word for u128 {}
+
+/// Initializes the `.data` section.
 ///
 /// # Arguments
 ///
@@ -119,18 +97,17 @@ use core::{mem, ptr, slice};
 ///
 /// # Safety
 ///
-/// - Must be called exactly once
-/// - `mem::size_of::<T>()` must be non-zero
-/// - `edata >= sdata`
+/// - Must be called exactly once, before the application has started.
+/// - `edata >= sdata`.
 /// - The `sdata -> edata` region must not overlap with the `sidata -> ...`
-///   region
+///   region.
 /// - `sdata`, `edata` and `sidata` must be `T` aligned.
 pub unsafe fn init_data<T>(
     mut sdata: *mut T,
     edata: *mut T,
     mut sidata: *const T,
 ) where
-    T: Copy,
+    T: Word,
 {
     while sdata < edata {
         ptr::write(sdata, ptr::read(sidata));
@@ -139,20 +116,7 @@ pub unsafe fn init_data<T>(
     }
 }
 
-pub unsafe fn run_init_array(
-    init_array_start: &extern "C" fn(),
-    init_array_end: &extern "C" fn(),
-) {
-    let n = (init_array_end as *const _ as usize -
-                 init_array_start as *const _ as usize) /
-        mem::size_of::<extern "C" fn()>();
-
-    for f in slice::from_raw_parts(init_array_start, n) {
-        f();
-    }
-}
-
-/// Zeroes the `.bss` section
+/// Zeroes the `.bss` section.
 ///
 /// # Arguments
 ///
@@ -163,55 +127,16 @@ pub unsafe fn run_init_array(
 ///
 /// # Safety
 ///
-/// - Must be called exactly once
-/// - `mem::size_of::<T>()` must be non-zero
-/// - `ebss >= sbss`
+/// - Must be called exactly once, before the application has started.
+/// - `ebss >= sbss`.
 /// - `sbss` and `ebss` must be `T` aligned.
 pub unsafe fn zero_bss<T>(mut sbss: *mut T, ebss: *mut T)
 where
-    T: Copy,
+    T: Word,
 {
     while sbss < ebss {
         // NOTE(volatile) to prevent this from being transformed into `memclr`
         ptr::write_volatile(sbss, mem::zeroed());
         sbss = sbss.offset(1);
-    }
-}
-
-#[macro_export]
-macro_rules! pre_init_array {
-    ($name:ident, $body:expr) => {
-        #[allow(dead_code)]
-        unsafe extern "C" fn $name() {
-            #[link_section = ".pre_init_array"]
-            #[used]
-            static PRE_INIT_ARRAY_ELEMENT: unsafe extern "C" fn() = $name;
-
-            #[inline(always)]
-            fn inner() {
-                $body
-            }
-
-            inner()
-        }
-    }
-}
-
-#[macro_export]
-macro_rules! init_array {
-    ($name:ident, $body:expr) => {
-        #[allow(dead_code)]
-        unsafe extern "C" fn $name() {
-            #[link_section = ".init_array"]
-            #[used]
-            static INIT_ARRAY_ELEMENT: unsafe extern "C" fn() = $name;
-
-            #[inline(always)]
-            fn inner() {
-                $body
-            }
-
-            inner()
-        }
     }
 }

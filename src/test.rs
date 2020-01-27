@@ -1,4 +1,4 @@
-use ::{init_data, zero_bss};
+use crate::{init_data, zero_bss};
 
 #[test]
 fn test_init_data() {
