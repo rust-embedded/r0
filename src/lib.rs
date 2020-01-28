@@ -49,6 +49,7 @@
 
 #![deny(warnings)]
 #![no_std]
+#![doc(html_root_url = "https://docs.rs/r0/0.2.2")]
 
 #[cfg(test)]
 mod test;
@@ -102,11 +103,8 @@ unsafe impl Word for u128 {}
 /// - The `sdata -> edata` region must not overlap with the `sidata -> ...`
 ///   region.
 /// - `sdata`, `edata` and `sidata` must be `T` aligned.
-pub unsafe fn init_data<T>(
-    mut sdata: *mut T,
-    edata: *mut T,
-    mut sidata: *const T,
-) where
+pub unsafe fn init_data<T>(mut sdata: *mut T, edata: *mut T, mut sidata: *const T)
+where
     T: Word,
 {
     while sdata < edata {
