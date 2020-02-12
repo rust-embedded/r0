@@ -1,12 +1,15 @@
-//! Initialization code ("crt0") written in Rust.
+//! Memory initialization code ("[crt0]") written in Rust.
 //!
-//! This is for bare metal systems where there is no ELF loader or OS to take
-//! care of initializing RAM for the program.
+//! This crate is meant for bare metal systems where there is no ELF loader or
+//! OS to take care of initializing RAM for the program. It provides functions
+//! for initializing the `.data` and `.bss` sections.
+//!
+//! [crt0]: https://en.wikipedia.org/wiki/Crt0
 //!
 //! # Initializing RAM
 //!
 //! On the linker script side, we must assign names (symbols) to the boundaries
-//! of the `.bss` and `.data` sections:
+//! of the `.bss` and `.data` sections. For example:
 //!
 //! ```text
 //! .bss : ALIGN(4)
@@ -26,7 +29,19 @@
 //! _sidata = LOADADDR(.data);
 //! ```
 //!
-//! On the Rust side, we must bind to those symbols using an `extern` block:
+//! This script defines symbols `_sbss`/`_ebss`, and `_sdata`/`_edata` to point
+//! at the boundaries of the `.bss` and `.data` sections in RAM, respectively.
+//! The `AT > FLASH` directive places the actual contents of the `.data` section
+//! in the `FLASH` memory region (which needs to be defined separately from this
+//! linker script snippet). Then `_sidata` is set to the address of that data in
+//! flash.
+//!
+//! Note that while `_sbss`, `_ebss`, `_sdata` and `_edata` are Virtual Memory
+//! Addresses (VMAs), `_sidata` is the Load Memory Address (LMA) of the `.data`
+//! section.
+//!
+//! On the Rust side, we must bind to those symbols using an `extern` block,
+//! and can then call into this crate to perform RAM initialization:
 //!
 //! ```no_run
 //! # use r0::{zero_bss, init_data};
@@ -86,14 +101,16 @@ unsafe impl Word for u32 {}
 unsafe impl Word for u64 {}
 unsafe impl Word for u128 {}
 
-/// Initializes the `.data` section.
+/// Initializes the `.data` section by copying it from the location indicated
+/// by `sidata`.
 ///
 /// # Arguments
 ///
-/// - `sdata`. Pointer to the start of the `.data` section.
-/// - `edata`. Pointer to the open/non-inclusive end of the `.data` section.
-///   (The value behind this pointer will not be modified)
-/// - `sidata`. `.data` section Load Memory Address (LMA)
+/// - `sdata`: Pointer to the start of the `.data` section in RAM.
+/// - `edata`: Pointer to the open/non-inclusive end of the `.data` section in
+///   RAM (the value behind this pointer will not be modified).
+/// - `sidata`: `.data` section Load Memory Address (LMA). Data will be copied
+///   from here.
 /// - Use `T` to indicate the alignment of the `.data` section and its LMA.
 ///
 /// # Safety
@@ -118,9 +135,9 @@ where
 ///
 /// # Arguments
 ///
-/// - `sbss`. Pointer to the start of the `.bss` section.
-/// - `ebss`. Pointer to the open/non-inclusive end of the `.bss` section.
-///   (The value behind this pointer will not be modified)
+/// - `sbss`: Pointer to the start of the `.bss` section in RAM.
+/// - `ebss`: Pointer to the open/non-inclusive end of the `.bss` section in
+///   RAM (the value behind this pointer will not be modified).
 /// - Use `T` to indicate the alignment of the `.bss` section.
 ///
 /// # Safety

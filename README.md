@@ -4,10 +4,12 @@
 
 # `r0`
 
-> Initialization code ("crt0") written in Rust
+Memory initialization code ("[crt0]") written in Rust.
 
-This project is developed and maintained by the [Cortex-A, Cortex-M, Cortex-R,
-MSP430, and RISCV teams][teams].
+This project is developed and maintained by the [Cortex-A, Cortex-M, Cortex-R, MSP430, and RISCV
+teams][teams].
+
+[crt0]: https://en.wikipedia.org/wiki/Crt0
 
 ## [Documentation](https://docs.rs/r0)
 
