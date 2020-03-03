@@ -1,11 +1,12 @@
 [package]
-name = "r0"
-authors = ["Jorge Aparicio <japaricious@gmail.com>"]
+authors = ["The embedded Rust working group"]
+categories = ["embedded", "no-std"]
 description = "Initialization code ('crt0') written in Rust"
 documentation = "https://docs.rs/r0"
-repository = "https://github.com/rust-embedded/r0"
-keywords = ["initialization", "init", "start", "crt0", "c0"]
-categories = ["embedded", "no-std"]
-license = "MIT OR Apache-2.0"
 edition = "2018"
-version = "0.2.2" # don't forget to update html_root_url
+keywords = ["initialization", "init", "start", "crt0", "c0"]
+license = "MIT OR Apache-2.0"
+name = "r0"
+readme = "README.md"
+repository = "https://github.com/rust-embedded/r0"
+version = "1.0.0" # don't forget to update html_root_url

@@ -61,10 +61,14 @@
 //!     init_data(&mut _sdata, &mut _edata, &_sidata);
 //! }
 //! ```
+//!
+//! # Minimum Supported Rust Version (MSRV)
+//!
+//! The MSRV of this release is Rust 1.31.0
 
 #![deny(warnings)]
 #![no_std]
-#![doc(html_root_url = "https://docs.rs/r0/0.2.2")]
+#![doc(html_root_url = "https://docs.rs/r0/1.0.0")]
 
 #[cfg(test)]
 mod test;
