@@ -1,9 +1,13 @@
 [package]
 name = "r0"
-authors = ["Jorge Aparicio <japaricious@gmail.com>"]
-description = "Initialization code ('crt0') written in Rust"
+authors = [
+    "Jorge Aparicio <japaricious@gmail.com>",
+    "Rust Embedded Working Group <wg@rust-embedded.org>",
+]
+description = "Memory initialization code ('crt0') written in Rust"
 documentation = "https://docs.rs/r0"
 repository = "https://github.com/rust-embedded/r0"
+readme = "README.md"
 keywords = ["initialization", "init", "start", "crt0", "c0"]
 categories = ["embedded", "no-std"]
 license = "MIT OR Apache-2.0"
