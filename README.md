@@ -1,15 +1,26 @@
-[![Build status](https://travis-ci.org/rust-embedded/r0.svg?branch=master)](https://travis-ci.org/rust-embedded/r0)
+# r0
+
+[![Build status](https://api.travis-ci.org/rust-embedded/r0.svg?branch=master)](https://travis-ci.org/rust-embedded/r0)
 [![crates.io](https://img.shields.io/crates/d/r0.svg)](https://crates.io/crates/r0)
 [![crates.io](https://img.shields.io/crates/v/r0.svg)](https://crates.io/crates/r0)
 
-# `r0`
+Memory initialization code written in Rust.
 
-Memory initialization code ("[crt0]") written in Rust.
+This crate is for bare metal systems where there is no ELF loader or OS to take care of
+initializing RAM for the program.
+
+r0 is not meant to be used by user applications directly. Instead, it is most often used by
+embedded runtime crates, like:
+
+* [cortex-m-rt](https://github.com/rust-embedded/cortex-m-rt)
+* [riscv-rt](https://github.com/rust-embedded/riscv-rt)
+* [msp430-rt](https://github.com/rust-embedded/msp430-rt)
+
+The r0 crate provides similar functionality to [crt0](https://en.wikipedia.org/wiki/Crt0) in the C
+runtime.
 
 This project is developed and maintained by the [Cortex-A, Cortex-M, Cortex-R, MSP430, and RISCV
 teams][teams].
-
-[crt0]: https://en.wikipedia.org/wiki/Crt0
 
 ## [Documentation](https://docs.rs/r0)
 
@@ -17,9 +28,9 @@ teams][teams].
 
 Licensed under either of
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
-  http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+* Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
+  <https://www.apache.org/licenses/LICENSE-2.0>)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or <https://opensource.org/licenses/MIT>)
 
 at your option.
 
