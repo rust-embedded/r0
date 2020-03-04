@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v1.0.0] - 2020-03-03
+
 ### Breaking Changes
 
 - Remove the init array APIs as they are not pulling their weight.
@@ -39,7 +41,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 - `init_data` and `zero_bss` functions.
 
-[Unreleased]: https://github.com/japaric/r0/compare/v0.2.2...HEAD
-[v0.2.2]: https://github.com/japaric/r0/compare/v0.2.1...v0.2.2
-[v0.2.1]: https://github.com/japaric/r0/compare/v0.2.0...v0.2.1
-[v0.2.0]: https://github.com/japaric/r0/compare/v0.1.0...v0.2.0
+[Unreleased]: https://github.com/rust-embedded/r0/compare/v1.0.0...HEAD
+[v1.0.0]: https://github.com/rust-embedded/r0/compare/v0.2.2...v1.0.0
+[v0.2.2]: https://github.com/rust-embedded/r0/compare/v0.2.1...v0.2.2
+[v0.2.1]: https://github.com/rust-embedded/r0/compare/v0.2.0...v0.2.1
+[v0.2.0]: https://github.com/rust-embedded/r0/compare/v0.1.0...v0.2.0
