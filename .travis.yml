@@ -5,14 +5,7 @@ matrix:
     - rust: nightly
   include:
     - rust: stable
-      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
     - rust: nightly
-      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
-
-    # We don't need to run CI on master (it would always pass anyways), but we want the badge
-    # to work, so add a dummy job.
-    - script: /bin/true
-      if: branch = master
 
 branches:
   only:
