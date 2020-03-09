@@ -5,9 +5,7 @@ matrix:
     - rust: nightly
   include:
     - rust: stable
-      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
     - rust: nightly
-      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
 branches:
   only:
