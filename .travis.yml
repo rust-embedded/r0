@@ -6,6 +6,8 @@ matrix:
   include:
     - rust: stable
     - rust: nightly
+    # MSRV
+    - rust: 1.31.0
 
 branches:
   only:
