@@ -166,7 +166,7 @@ where
         sbss = sbss.offset(1);
     }
 
-    // Ensure that any accesses of `static`s are not reordered before the `.data` section is
+    // Ensure that any accesses of `static`s are not reordered before the `.bss` section is
     // initialized.
     // We use `SeqCst`, because `Acquire` only prevents later accesses from being reordered before
     // *reads*, but this method only *writes* to the locations.
