@@ -73,6 +73,7 @@
 #[cfg(test)]
 mod test;
 
+use core::sync::atomic::{compiler_fence, Ordering};
 use core::{mem, ptr};
 
 mod sealed {
@@ -133,6 +134,12 @@ where
         sdata = sdata.offset(1);
         sidata = sidata.offset(1);
     }
+
+    // Ensure that any accesses of `static`s are not reordered before the `.data` section is
+    // initialized.
+    // We use `SeqCst`, because `Acquire` only prevents later accesses from being reordered before
+    // *reads*, but this method only *writes* to the locations.
+    compiler_fence(Ordering::SeqCst);
 }
 
 /// Zeroes the `.bss` section.
@@ -158,4 +165,10 @@ where
         ptr::write_volatile(sbss, mem::zeroed());
         sbss = sbss.offset(1);
     }
+
+    // Ensure that any accesses of `static`s are not reordered before the `.data` section is
+    // initialized.
+    // We use `SeqCst`, because `Acquire` only prevents later accesses from being reordered before
+    // *reads*, but this method only *writes* to the locations.
+    compiler_fence(Ordering::SeqCst);
 }
