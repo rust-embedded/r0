@@ -4,6 +4,12 @@
 [![crates.io](https://img.shields.io/crates/d/r0.svg)](https://crates.io/crates/r0)
 [![crates.io](https://img.shields.io/crates/v/r0.svg)](https://crates.io/crates/r0)
 
+**DEPRECATED: This crate is no longer supported, and dependents are instead
+recommended to implement their r0 using assembly. See [cortex-m-rt#300]
+for details.**
+
+[cortex-m-rt#300]: https://github.com/rust-embedded/cortex-m-rt/issues/300
+
 Memory initialization code written in Rust.
 
 This crate is for bare metal systems where there is no ELF loader or OS to take care of
